@@ -1,20 +1,32 @@
 plugins {
     java
-    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.16"
+    id("xyz.jpenilla.run-paper") version "2.3.1"
 }
+
+paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
+
 
 repositories {
     mavenCentral()
-
+    maven {
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
     maven(url="https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven(url="https://repo.dmulloy2.net/repository/public/") // ProtocolLib
     maven(url="https://maven.enginehub.org/repo/") // WorldEdit
+    maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2") // mechanicscore 4.x
+
+
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT")
+//    compileOnly("io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
     compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
-    compileOnly("com.cjcrafter:mechanicscore:3.4.1")
+//    compileOnly("com.cjcrafter:mechanicscore:4.0.4")
+    compileOnly(files(fileTree("libs")))
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.13")
 
     // adventure
@@ -35,7 +47,7 @@ java {
 tasks {
     compileJava {
         options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
-        options.release.set(16)
+        options.release.set(21)
     }
     javadoc {
         options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything

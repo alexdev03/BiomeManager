@@ -1,19 +1,19 @@
 package me.cjcrafter.biomemanager.compatibility;
 
+import com.google.gson.JsonObject;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import me.cjcrafter.biomemanager.BiomeManager;
 import me.cjcrafter.biomemanager.BiomeRegistry;
 import me.cjcrafter.biomemanager.SpecialEffectsBuilder;
-import me.deecaad.core.file.SerializeData;
-import me.deecaad.core.file.SerializerException;
-import me.deecaad.core.utils.EnumUtil;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.OptionalInt;
+import static me.cjcrafter.biomemanager.compatibility.JsonSerializable.gson;
 
-public interface BiomeWrapper {
+public interface BiomeWrapper  {
 
     /**
      * Resets this biome's settings to its default values. For custom biomes,
@@ -99,18 +99,13 @@ public interface BiomeWrapper {
     void register(boolean isCustom);
 
     /**
-     * If this wraps a <b>vanilla biome</b> (any biome listed in the
-     * {@link Biome} enum), then this will return that enum. Otherwise this
-     * method will return {@link Biome#CUSTOM} (meaning that this wraps a
-     * custom biome).
+     * Returns the {@link Biome} associated with this wrapper
+     * from the Bukkit registry.
      *
-     * @return The {@link Biome} associated with this wrapper, or {@link Biome#CUSTOM}.
+     * @return The {@link Biome} associated with this wrapper
      */
     default Biome getBukkitBiome() {
-        if (!getKey().getNamespace().equals(NamespacedKey.MINECRAFT))
-            return Biome.CUSTOM;
-
-        return EnumUtil.getIfPresent(Biome.class, getName()).orElse(Biome.CUSTOM);
+        return RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).getOrThrow(getKey());
     }
 
     /**
@@ -119,7 +114,7 @@ public interface BiomeWrapper {
      * @return true if this biome is custom.
      */
     default boolean isCustom() {
-        return getBukkitBiome() == Biome.CUSTOM;
+        return !getKey().getNamespace().equals(NamespacedKey.MINECRAFT);
     }
 
     /**
@@ -139,23 +134,19 @@ public interface BiomeWrapper {
      */
     boolean isDirty();
 
-    static BiomeWrapper serialize(SerializeData data) throws SerializerException {
-
-        // Make sure we have initialized the compatibility layer. This ensures that
-        // we have already added the vanilla biomes (and any custom biomes from other
-        // plugins) into our BiomeRegistry class
-        BiomeCompatibility _ignore = BiomeCompatibilityAPI.getBiomeCompatibility();
-
-        String keyStr = data.of("Key").assertExists().get();
-        boolean isCustom = data.of("Custom").assertExists().getBool();
-        boolean isExternalPlugin = data.of("External_Plugin").getBool(false);
-        SpecialEffectsBuilder specialEffects = data.of("Special_Effects").assertExists().serialize(SpecialEffectsBuilder.class);
-        Biome base = data.of("Base").assertExists().getEnum(Biome.class);
-
+    @Nullable
+    static BiomeWrapper deserialize(JsonObject jsonObject) {
+        BiomeCompatibility _compatibility = BiomeCompatibilityAPI.getBiomeCompatibility();
+        String keyStr = jsonObject.get("Key").getAsString();
+        boolean isCustom = jsonObject.get("Custom").getAsBoolean();
+        boolean isExternalPlugin = jsonObject.get("External_Plugin").getAsBoolean();
+        SpecialEffectsBuilder specialEffects = gson.fromJson(jsonObject.get("SpecialEffects"), SpecialEffectsBuilder.class);
         NamespacedKey key = NamespacedKey.fromString(keyStr);
+        assert key != null;
+        String baseKeyStr = jsonObject.get("BaseKey").getAsString();
+        NamespacedKey baseKey = NamespacedKey.fromString(baseKeyStr);
+        Biome base = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).getOrThrow(baseKey);
 
-        // In order for reset() to work on custom biomes registered by other plugins,
-        // we need to let them register the plugin. That way we can just create a wrapper later
         if (isExternalPlugin) {
             BiomeWrapper wrapper = BiomeRegistry.getInstance().get(key);
             if (wrapper == null) {
@@ -168,21 +159,23 @@ public interface BiomeWrapper {
         }
 
         BiomeWrapper baseWrapper = BiomeRegistry.getInstance().getBukkit(base);
-        BiomeWrapper wrapper = BiomeCompatibilityAPI.getBiomeCompatibility().createBiome(key, baseWrapper);
+        BiomeWrapper wrapper = _compatibility.createBiome(key, baseWrapper);
         wrapper.setSpecialEffects(specialEffects);
 
-        // Only register custom biomes, vanilla ones have already been injected
-        if (isCustom)
+        if (isCustom) {
             wrapper.register(true);
+        }
 
         return wrapper;
     }
 
-    default void deserialize(ConfigurationSection config) {
-        config.set("Key", getKey().toString());
-        config.set("Custom", isCustom());
-        config.set("External_Plugin", isExternalPlugin());
-        getSpecialEffects().deserialize(config.createSection("Special_Effects"));
-        config.set("Base", getBase().name());
+    default JsonObject serialize() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("Key", getKey().toString());
+        jsonObject.addProperty("Custom", isCustom());
+        jsonObject.addProperty("External_Plugin", isExternalPlugin());
+        jsonObject.add("SpecialEffects", gson.toJsonTree(getSpecialEffects()));
+        jsonObject.addProperty("BaseKey", getBase().getKey().toString());
+        return jsonObject;
     }
 }

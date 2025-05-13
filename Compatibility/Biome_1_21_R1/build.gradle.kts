@@ -10,9 +10,8 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
     implementation(project(":"))
-    compileOnly("org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT")
     compileOnly("com.cjcrafter:mechanicscore:3.4.1")
     compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
 }

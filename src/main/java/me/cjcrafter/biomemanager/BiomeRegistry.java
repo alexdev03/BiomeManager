@@ -59,8 +59,14 @@ public final class BiomeRegistry {
     }
 
     public BiomeWrapper getBukkit(Biome biome) {
-        if (biome == Biome.CUSTOM)
-            throw new IllegalArgumentException("Cannot use Biome.CUSTOM");
+//        if (biome == Biome.CUSTOM)
+//            throw new IllegalArgumentException("Cannot use Biome.CUSTOM");
+        if (biome == null) {
+            throw new IllegalArgumentException("Cannot use null biomes");
+        }
+        if (biome.getKey().getKey().equals(NamespacedKey.MINECRAFT)) {
+            throw new IllegalArgumentException("Cannot use Minecraft biomes");
+        }
 
         BiomeWrapper wrapper = map.get(biome.getKey());
         if (wrapper == null)

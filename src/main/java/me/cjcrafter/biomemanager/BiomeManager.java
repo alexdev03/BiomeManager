@@ -4,34 +4,31 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
+import com.google.gson.JsonObject;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import me.cjcrafter.biomemanager.command.Command;
-import me.cjcrafter.biomemanager.command.WorldEditCommand;
 import me.cjcrafter.biomemanager.compatibility.BiomeCompatibilityAPI;
 import me.cjcrafter.biomemanager.compatibility.BiomeWrapper;
+import me.cjcrafter.biomemanager.compatibility.JsonSerializable;
 import me.cjcrafter.biomemanager.listeners.BiomeRandomizer;
 import me.cjcrafter.biomemanager.listeners.EditModeListener;
-import me.deecaad.core.file.BukkitConfig;
-import me.deecaad.core.file.SerializeData;
-import me.deecaad.core.file.SerializerException;
 import me.deecaad.core.utils.Debugger;
 import me.deecaad.core.utils.FileUtil;
-import me.deecaad.core.utils.LogLevel;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
+import java.util.logging.Level;
 
 import static com.comphenix.protocol.PacketType.Play.Server.MAP_CHUNK;
 
@@ -51,9 +48,12 @@ public class BiomeManager extends JavaPlugin {
     public void onEnable() {
         loadConfig();
 
-        Command.register();
-        if (getServer().getPluginManager().getPlugin("WorldEdit") != null)
-            WorldEditCommand.register();
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
+            Command.register(this, commands.registrar());
+        });
+
+//        if (getServer().getPluginManager().getPlugin("WorldEdit") != null)
+//            WorldEditCommand.register();
 
         // Register packet listeners
         if (!getConfig().getBoolean("Disable_Biome_Variations", false)) {
@@ -71,16 +71,15 @@ public class BiomeManager extends JavaPlugin {
         // Register events
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(editModeListener = new EditModeListener(), this);
-        pm.registerEvents(biomeRandomizer = new BiomeRandomizer(), this);
+//        pm.registerEvents(biomeRandomizer = new BiomeRandomizer(), this);
     }
 
     public void onDisable() {
-        saveToConfig();
     }
 
     public void loadConfig() {
         // Make sure we load NMS onEnable
-        BiomeCompatibilityAPI.getBiomeCompatibility();
+        BiomeCompatibilityAPI.loadBiomeCompatibility();
 
         if (!getDataFolder().exists() || getDataFolder().listFiles() == null || getDataFolder().listFiles().length == 0) {
             debug.info("Copying files from jar (This process may take up to 30 seconds during the first load!)");
@@ -93,20 +92,23 @@ public class BiomeManager extends JavaPlugin {
 
             final FileUtil.PathReference pathReference = FileUtil.PathReference.of(biomesFolder.toURI());
             Files.walkFileTree(pathReference.path(), new SimpleFileVisitor<>() {
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    try {
-                        YamlConfiguration config = YamlConfiguration.loadConfiguration(new FileReader(file.toFile()));
-                        BiomeWrapper.serialize(new SerializeData("Biome", file.toFile(), null, new BukkitConfig(config)));
-                    } catch (SerializerException ex) {
-                        ex.log(debug);
+                @NotNull
+                public FileVisitResult visitFile(@NotNull Path file, BasicFileAttributes attrs) {
+                    try (BufferedReader br = new BufferedReader(new FileReader(file.toFile()))) {
+
+                        BiomeWrapper biomeWrapper = BiomeWrapper.deserialize(JsonSerializable.gson.fromJson(br, JsonObject.class));
+                        if (biomeWrapper == null) {
+                            getLogger().warning("Biome wrapper could not be deserialized!");
+                            return FileVisitResult.CONTINUE;
+                        }
                     } catch (Throwable ex) {
-                        debug.log(LogLevel.ERROR, "Found an error while serializing " + file, ex);
+                        getLogger().log(Level.SEVERE, "Failed to load biome: " + file, ex);
                     }
                     return FileVisitResult.CONTINUE;
                 }
             });
         } catch (IOException ex) {
-            debug.log(LogLevel.ERROR, "Error reading config", ex);
+            getLogger().log(Level.SEVERE, "Failed to load biomes", ex);
         }
     }
 
@@ -126,7 +128,7 @@ public class BiomeManager extends JavaPlugin {
         debug.info("Saving biomes to config");
 
         // Save biome variations
-        biomeRandomizer.save();
+//        biomeRandomizer.save();
 
         // All custom biomes are stored in this folder, make sure it exists.
         File overridesFolder = new File(getDataFolder(), "biomes");
@@ -144,18 +146,12 @@ public class BiomeManager extends JavaPlugin {
             File namespaceDirectory = new File(overridesFolder, key.getNamespace());
             namespaceDirectory.mkdirs();
 
-            File configFile = new File(namespaceDirectory, key.getKey() + ".yml");
-            if (!configFile.exists()) {
-                try {
-                    configFile.createNewFile();
-                    YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                    config.getKeys(false).forEach(str -> config.set(str, null));
-
-                    wrapper.deserialize(config);
-                    config.save(configFile);
-                } catch (IOException ex) {
-                    debug.log(LogLevel.ERROR, "Error creating/saving file '" + configFile + "'", ex);
-                }
+            File configFile = new File(namespaceDirectory, key.getKey() + ".json");
+            try (FileWriter writer = new FileWriter(configFile)) {
+                String object = JsonSerializable.gson.toJson(wrapper.serialize());
+                writer.write(object);
+            } catch (IOException ex) {
+                getLogger().log(Level.SEVERE, "Error creating/saving file '" + configFile + "'", ex);
             }
         }
     }
@@ -164,10 +160,6 @@ public class BiomeManager extends JavaPlugin {
         Metrics metrics = new Metrics(this, 17119);
         metrics.addCustomChart(new SingleLineChart("custom_biomes",
                 () -> BiomeRegistry.getInstance().getKeys(true).size()));
-    }
-
-    public Debugger getDebug() {
-        return debug;
     }
 
     public static BiomeManager inst() {

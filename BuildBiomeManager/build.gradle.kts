@@ -7,13 +7,14 @@ plugins {
     `java-library`
     id("io.github.goooler.shadow") version "8.1.7"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+    id("xyz.jpenilla.run-paper")
 }
 
 // See https://github.com/Minecrell/plugin-yml
 bukkit {
     main = "me.cjcrafter.biomemanager.BiomeManager"
     name = "BiomeManager"
-    apiVersion = "1.16"
+    apiVersion = "1.21.4"
     load = STARTUP // required to register biomes before world load
 
     authors = listOf("CJCrafter")
@@ -28,12 +29,8 @@ repositories {
 
 dependencies {
     implementation(project(":"))
-    implementation(project(":Biome_1_19_R3", "reobf"))
-    implementation(project(":Biome_1_20_R1", "reobf"))
-    implementation(project(":Biome_1_20_R2", "reobf"))
-    implementation(project(":Biome_1_20_R3", "reobf"))
-    implementation(project(":Biome_1_20_R4", "reobf"))
-    implementation(project(":Biome_1_21_R1", "reobf"))
+//    implementation(project(":Biome_1_21_R1", "reobf"))
+    implementation(project(":Biome_1_21_4"))
 }
 
 java {
@@ -48,12 +45,8 @@ tasks.shadowJar {
 
     dependencies {
         include(project(":"))
-        include(project(":Biome_1_19_R3"))
-        include(project(":Biome_1_20_R1"))
-        include(project(":Biome_1_20_R2"))
-        include(project(":Biome_1_20_R3"))
-        include(project(":Biome_1_20_R4"))
-        include(project(":Biome_1_21_R1"))
+//        include(project(":Biome_1_21_R1"))
+        include(project(":Biome_1_21_4"))
 
         relocate("org.bstats", "me.cjcrafter.biomemanager.lib.bstats") {
             include(dependency("org.bstats:"))
@@ -62,5 +55,12 @@ tasks.shadowJar {
 
     // This doesn't actually include any dependencies, this relocates all references
     // to the mechanics core lib.
-    relocate("net.kyori", "me.deecaad.core.lib")
+//    relocate("net.kyori", "me.deecaad.core.lib")
+}
+
+tasks.runServer {
+    // Configure the Minecraft version for our task.
+    // This is the only required configuration besides applying the plugin.
+    // Your plugin's jar (or shadowJar if present) will be used automatically.
+    minecraftVersion("1.21.4")
 }

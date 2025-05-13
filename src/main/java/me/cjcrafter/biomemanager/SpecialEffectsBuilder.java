@@ -1,15 +1,9 @@
 package me.cjcrafter.biomemanager;
 
-import me.deecaad.core.file.SerializeData;
-import me.deecaad.core.file.Serializer;
-import me.deecaad.core.file.SerializerException;
-import me.deecaad.core.file.serializers.ColorSerializer;
 import org.bukkit.Color;
-import org.bukkit.configuration.ConfigurationSection;
 
-import javax.annotation.Nonnull;
-
-public class SpecialEffectsBuilder implements Serializer<SpecialEffectsBuilder> {
+@SuppressWarnings("UnusedReturnValue")
+public class SpecialEffectsBuilder {
 
     /**
      * The data needed to store "ambient particles". In vanilla, only nether
@@ -259,106 +253,106 @@ public class SpecialEffectsBuilder implements Serializer<SpecialEffectsBuilder> 
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SpecialEffectsBuilder serialize(SerializeData data) throws SerializerException {
+//    @Nonnull
+//    @Override
+//    public SpecialEffectsBuilder serialize(SerializeData data) throws SerializerException {
+//
+//        Color fogColor = data.of("Fog_Color").assertExists().serialize(new ColorSerializer()).orElseThrow();
+//        Color waterColor = data.of("Water_Color").assertExists().serialize(new ColorSerializer()).orElseThrow();
+//        Color waterFogColor = data.of("Water_Fog_Color").assertExists().serialize(new ColorSerializer()).orElseThrow();
+//        Color skyColor = data.of("Sky_Color").assertExists().serialize(new ColorSerializer()).orElseThrow();
+//        ColorSerializer foliageColor = data.of("Foliage_Color").serialize(new ColorSerializer())
+//        ColorSerializer grassColor = data.of("Grass_Color").serialize(new ColorSerializer());
+//
+//        SpecialEffectsBuilder builder = new SpecialEffectsBuilder()
+//                .setFogColor(fogColor)
+//                .setWaterColor(waterColor)
+//                .setWaterFogColor(waterFogColor)
+//                .setSkyColor(skyColor)
+//                .setGrassColorModifier(data.of("Grass_Modifier").get("NONE").trim().toUpperCase());
+//
+//        if (foliageColor != null) {
+//            builder.setFoliageColorOverride(foliageColor.getColor());
+//        }
+//
+//        if (grassColor != null) {
+//            builder.setGrassColorOverride(grassColor.getColor());
+//        }
+//
+//        if (data.has("Particle")) {
+//            builder.setAmbientParticle(data.of("Particle.Type").assertExists().get());
+//            builder.setParticleProbability((float) data.of("Particle.Density").assertExists().getDouble());
+//        }
+//
+//        builder.setAmbientSound(data.of("Ambient_Sound").get(null));
+//
+//        if (data.has("Cave_Sound")) {
+//            builder.setCaveSound(data.of("Cave_Sound.Sound").assertExists().get());
+//            builder.setCaveTickDelay(data.of("Cave_Sound.Tick_Delay").assertExists().assertPositive().getInt());
+//            builder.setCaveSearchDistance(data.of("Cave_Sound.Search_Distance").assertExists().assertPositive().getInt());
+//            builder.setCaveSoundOffset(data.of("Cave_Sound.Sound_Offset").assertExists().assertPositive().getDouble());
+//        }
+//
+//        if (data.has("Random_Sound")) {
+//            builder.setRandomSound(data.of("Random_Sound.Sound").assertExists().get());
+//            builder.setRandomTickChance(data.of("Random_Sound.Tick_Chance").assertExists().assertPositive().getDouble());
+//        }
+//
+//        if (data.has("Music")) {
+//            builder.setMusicSound(data.of("Music.Sound").assertExists().get());
+//            builder.setMusicMinDelay(data.of("Music.Min_Delay").assertExists().assertPositive().getInt());
+//            builder.setMusicMaxDelay(data.of("Music.Max_Delay").assertExists().assertPositive().getInt());
+//            builder.setMusicOverride(data.of("Music.Override_Previous_Music").assertExists().getBool());
+//        }
+//
+//        return builder;
+//    }
 
-        Color fogColor = data.of("Fog_Color").assertExists().serialize(new ColorSerializer()).getColor();
-        Color waterColor = data.of("Water_Color").assertExists().serialize(new ColorSerializer()).getColor();
-        Color waterFogColor = data.of("Water_Fog_Color").assertExists().serialize(new ColorSerializer()).getColor();
-        Color skyColor = data.of("Sky_Color").assertExists().serialize(new ColorSerializer()).getColor();
-        ColorSerializer foliageColor = data.of("Foliage_Color").serialize(new ColorSerializer());
-        ColorSerializer grassColor = data.of("Grass_Color").serialize(new ColorSerializer());
-
-        SpecialEffectsBuilder builder = new SpecialEffectsBuilder()
-                .setFogColor(fogColor)
-                .setWaterColor(waterColor)
-                .setWaterFogColor(waterFogColor)
-                .setSkyColor(skyColor)
-                .setGrassColorModifier(data.of("Grass_Modifier").get("NONE").trim().toUpperCase());
-
-        if (foliageColor != null) {
-            builder.setFoliageColorOverride(foliageColor.getColor());
-        }
-
-        if (grassColor != null) {
-            builder.setGrassColorOverride(grassColor.getColor());
-        }
-
-        if (data.has("Particle")) {
-            builder.setAmbientParticle(data.of("Particle.Type").assertExists().get());
-            builder.setParticleProbability((float) data.of("Particle.Density").assertExists().getDouble());
-        }
-
-        builder.setAmbientSound(data.of("Ambient_Sound").get(null));
-
-        if (data.has("Cave_Sound")) {
-            builder.setCaveSound(data.of("Cave_Sound.Sound").assertExists().get());
-            builder.setCaveTickDelay(data.of("Cave_Sound.Tick_Delay").assertExists().assertPositive().getInt());
-            builder.setCaveSearchDistance(data.of("Cave_Sound.Search_Distance").assertExists().assertPositive().getInt());
-            builder.setCaveSoundOffset(data.of("Cave_Sound.Sound_Offset").assertExists().assertPositive().getDouble());
-        }
-
-        if (data.has("Random_Sound")) {
-            builder.setRandomSound(data.of("Random_Sound.Sound").assertExists().get());
-            builder.setRandomTickChance(data.of("Random_Sound.Tick_Chance").assertExists().assertPositive().getDouble());
-        }
-
-        if (data.has("Music")) {
-            builder.setMusicSound(data.of("Music.Sound").assertExists().get());
-            builder.setMusicMinDelay(data.of("Music.Min_Delay").assertExists().assertPositive().getInt());
-            builder.setMusicMaxDelay(data.of("Music.Max_Delay").assertExists().assertPositive().getInt());
-            builder.setMusicOverride(data.of("Music.Override_Previous_Music").assertExists().getBool());
-        }
-
-        return builder;
-    }
-
-    public void deserialize(ConfigurationSection config) {
-        config.set("Fog_Color", deserializeColor(fogColor));
-        config.set("Water_Color", deserializeColor(waterColor));
-        config.set("Water_Fog_Color", deserializeColor(waterFogColor));
-        config.set("Sky_Color", deserializeColor(skyColor));
-
-        // Setting to null deleted the option in config
-        config.set("Foliage_Color", foliageColorOverride == -1 ? null : deserializeColor(foliageColorOverride));
-        config.set("Grass_Color", grassColorOverride == -1 ? null : deserializeColor(grassColorOverride));
-        config.set("Grass_Modifier", "NONE".equals(grassColorModifier) ? null : grassColorModifier);
-
-        if (particle.particle != null) {
-            config.set("Particle.Type", particle.particle);
-            config.set("Particle.Density", particle.density);
-        } else {
-            config.set("Particle", null);  // else delete section (if present)
-        }
-
-        config.set("Ambient_Sound", ambientSound);
-
-        if (caveSoundSettings.sound != null) {
-            config.set("Cave_Sound.Sound", caveSoundSettings.sound);
-            config.set("Cave_Sound.Tick_Delay", caveSoundSettings.tickDelay);
-            config.set("Cave_Sound.Search_Distance", caveSoundSettings.searchOffset);
-            config.set("Cave_Sound.Sound_Offset", caveSoundSettings.soundOffset);
-        } else {
-            config.set("Cave_Sound", null);  // else delete section (if present)
-        }
-
-        if (caveSound.sound != null) {
-            config.set("Random_Sound.Sound", caveSound.sound);
-            config.set("Random_Sound.Tick_Chance", caveSound.tickChance);
-        } else {
-            config.set("Random_Sound", null);  // else delete section (if present)
-        }
-
-        if (music.sound != null) {
-            config.set("Music.Sound", music.sound);
-            config.set("Music.Min_Delay", music.minDelay);
-            config.set("Music.Max_Delay", music.maxDelay);
-            config.set("Music.Override_Previous_Music", music.isOverride);
-        } else {
-            config.set("Music", null);
-        }
-    }
+//    public void deserialize(ConfigurationSection config) {
+//        config.set("Fog_Color", deserializeColor(fogColor));
+//        config.set("Water_Color", deserializeColor(waterColor));
+//        config.set("Water_Fog_Color", deserializeColor(waterFogColor));
+//        config.set("Sky_Color", deserializeColor(skyColor));
+//
+//        // Setting to null deleted the option in config
+//        config.set("Foliage_Color", foliageColorOverride == -1 ? null : deserializeColor(foliageColorOverride));
+//        config.set("Grass_Color", grassColorOverride == -1 ? null : deserializeColor(grassColorOverride));
+//        config.set("Grass_Modifier", "NONE".equals(grassColorModifier) ? null : grassColorModifier);
+//
+//        if (particle.particle != null) {
+//            config.set("Particle.Type", particle.particle);
+//            config.set("Particle.Density", particle.density);
+//        } else {
+//            config.set("Particle", null);  // else delete section (if present)
+//        }
+//
+//        config.set("Ambient_Sound", ambientSound);
+//
+//        if (caveSoundSettings.sound != null) {
+//            config.set("Cave_Sound.Sound", caveSoundSettings.sound);
+//            config.set("Cave_Sound.Tick_Delay", caveSoundSettings.tickDelay);
+//            config.set("Cave_Sound.Search_Distance", caveSoundSettings.searchOffset);
+//            config.set("Cave_Sound.Sound_Offset", caveSoundSettings.soundOffset);
+//        } else {
+//            config.set("Cave_Sound", null);  // else delete section (if present)
+//        }
+//
+//        if (caveSound.sound != null) {
+//            config.set("Random_Sound.Sound", caveSound.sound);
+//            config.set("Random_Sound.Tick_Chance", caveSound.tickChance);
+//        } else {
+//            config.set("Random_Sound", null);  // else delete section (if present)
+//        }
+//
+//        if (music.sound != null) {
+//            config.set("Music.Sound", music.sound);
+//            config.set("Music.Min_Delay", music.minDelay);
+//            config.set("Music.Max_Delay", music.maxDelay);
+//            config.set("Music.Override_Previous_Music", music.isOverride);
+//        } else {
+//            config.set("Music", null);
+//        }
+//    }
 
     private static String deserializeColor(int rgb) {
         Color color = Color.fromRGB(rgb);

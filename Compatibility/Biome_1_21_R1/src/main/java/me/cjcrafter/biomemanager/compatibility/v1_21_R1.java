@@ -3,7 +3,6 @@ package me.cjcrafter.biomemanager.compatibility;
 import com.comphenix.protocol.events.PacketEvent;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import me.cjcrafter.biomemanager.BiomeManager;
 import me.cjcrafter.biomemanager.BiomeRegistry;
 import me.cjcrafter.biomemanager.events.BiomePacketEvent;
 import me.deecaad.core.utils.LogLevel;

@@ -150,7 +150,7 @@ public interface BiomeWrapper  {
         if (isExternalPlugin) {
             BiomeWrapper wrapper = BiomeRegistry.getInstance().get(key);
             if (wrapper == null) {
-                BiomeManager.inst().debug.error("An externally added biome '" + key + "' doesn't exist anymore... Removing data.");
+                BiomeManager.inst().getLogger().severe("An externally added biome '" + key + "' doesn't exist anymore... Removing data.");
                 return null;
             }
 

@@ -5,15 +5,15 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.gson.JsonObject;
+import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import me.cjcrafter.biomemanager.command.Command;
+import me.cjcrafter.biomemanager.command.WorldEditCommand;
 import me.cjcrafter.biomemanager.compatibility.BiomeCompatibilityAPI;
 import me.cjcrafter.biomemanager.compatibility.BiomeWrapper;
 import me.cjcrafter.biomemanager.compatibility.JsonSerializable;
 import me.cjcrafter.biomemanager.listeners.BiomeRandomizer;
 import me.cjcrafter.biomemanager.listeners.EditModeListener;
-import me.deecaad.core.utils.Debugger;
-import me.deecaad.core.utils.FileUtil;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.NamespacedKey;
@@ -35,13 +35,11 @@ import static com.comphenix.protocol.PacketType.Play.Server.MAP_CHUNK;
 public class BiomeManager extends JavaPlugin {
 
     private static BiomeManager INSTANCE;
-    public Debugger debug;
     public EditModeListener editModeListener;
     public BiomeRandomizer biomeRandomizer;
 
     public void onLoad() {
         INSTANCE = this;
-        debug = new Debugger(getLogger(), 2);
     }
 
     @Override
@@ -49,7 +47,9 @@ public class BiomeManager extends JavaPlugin {
         loadConfig();
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
-            Command.register(this, commands.registrar());
+            Commands registrar = commands.registrar();
+            Command.register(registrar);
+            WorldEditCommand.register(registrar);
         });
 
 //        if (getServer().getPluginManager().getPlugin("WorldEdit") != null)
@@ -82,16 +82,16 @@ public class BiomeManager extends JavaPlugin {
         BiomeCompatibilityAPI.loadBiomeCompatibility();
 
         if (!getDataFolder().exists() || getDataFolder().listFiles() == null || getDataFolder().listFiles().length == 0) {
-            debug.info("Copying files from jar (This process may take up to 30 seconds during the first load!)");
-            FileUtil.copyResourcesTo(getClassLoader().getResource("BiomeManager"), getDataFolder().toPath());
+            getLogger().info("Copying files from jar (This process may take up to 30 seconds during the first load!)");
+//            FileUtil.copyResourcesTo(getClassLoader().getResource("BiomeManager"), getDataFolder().toPath());
+            saveDefaultConfig();
         }
 
         try {
             File biomesFolder = new File(getDataFolder(), "biomes");
             biomesFolder.mkdirs();
 
-            final FileUtil.PathReference pathReference = FileUtil.PathReference.of(biomesFolder.toURI());
-            Files.walkFileTree(pathReference.path(), new SimpleFileVisitor<>() {
+            Files.walkFileTree(biomesFolder.toPath(), new SimpleFileVisitor<>() {
                 @NotNull
                 public FileVisitResult visitFile(@NotNull Path file, BasicFileAttributes attrs) {
                     try (BufferedReader br = new BufferedReader(new FileReader(file.toFile()))) {
@@ -125,8 +125,6 @@ public class BiomeManager extends JavaPlugin {
     }
 
     public void saveToConfig() {
-        debug.info("Saving biomes to config");
-
         // Save biome variations
 //        biomeRandomizer.save();
 

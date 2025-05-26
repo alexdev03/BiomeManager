@@ -6,16 +6,17 @@ import io.papermc.paper.registry.RegistryKey;
 import me.cjcrafter.biomemanager.BiomeManager;
 import me.cjcrafter.biomemanager.BiomeRegistry;
 import me.cjcrafter.biomemanager.SpecialEffectsBuilder;
-import me.deecaad.core.lib.scheduler.util.FieldAccessor;
-import me.deecaad.core.lib.scheduler.util.MethodInvoker;
-import me.deecaad.core.lib.scheduler.util.ReflectionUtil;
-import me.deecaad.core.utils.LogLevel;
+import me.cjcrafter.biomemanager.util.FieldAccessor;
+import me.cjcrafter.biomemanager.util.MethodInvoker;
+import me.cjcrafter.biomemanager.util.ReflectionUtil;
 import net.minecraft.commands.arguments.ParticleArgument;
 import net.minecraft.core.*;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -26,16 +27,15 @@ import net.minecraft.world.level.biome.*;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.CraftServer;
-import org.bukkit.craftbukkit.CraftSound;
-import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.*;
 import org.bukkit.craftbukkit.block.CraftBiome;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.logging.Level;
 
 import static me.cjcrafter.biomemanager.compatibility.v1_21_4.biomeRegistry;
 
@@ -174,10 +174,20 @@ public class BiomeWrapper_1_21_4 implements BiomeWrapper {
     }
 
     public String writeParticle(ParticleOptions particle) {
-        if (particle instanceof DustParticleOptions dust) {
-
+//        try {
+//            System.out.println(JsonSerializable.gson.toJson(particle));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        if (particle instanceof DustParticleOptions dust) {
+//
+//        }
+//        return "";
+        if (!(particle instanceof SimpleParticleType simpleParticleType)) {
+            throw new IllegalArgumentException("Invalid particle type: " + particle.getClass().getName());
         }
-        return "";
+
+        return CraftParticle.minecraftToBukkit(simpleParticleType.getType()).getKey().toString();
     }
 
     @Override
@@ -254,13 +264,13 @@ public class BiomeWrapper_1_21_4 implements BiomeWrapper {
         if (builder.getAmbientSound() != null) {
             a.ambientLoopSound(getSound(builder.getAmbientSound()));
         }
-        if (particle.particle() != null) {
+        if (particle.particle() != null && !particle.particle().isEmpty()) {
             try {
                 RegistryAccess access = ((CraftServer) Bukkit.getServer()).getServer().registryAccess();
                 ParticleOptions nmsParticle = ParticleArgument.readParticle(new StringReader(particle.particle()), access);
                 a.ambientParticle(new AmbientParticleSettings(nmsParticle, particle.density()));
             } catch (CommandSyntaxException ex) {
-                BiomeManager.inst().debug.log(LogLevel.ERROR, "Could not set particle: " + particle, ex);
+                BiomeManager.inst().getLogger().log(Level.SEVERE, "Could not set particle: " + particle, ex);
             }
         }
         if (caveSettings.sound() != null) {
@@ -300,7 +310,7 @@ public class BiomeWrapper_1_21_4 implements BiomeWrapper {
 
         // Register the biome to BiomeManager's registry, and to the vanilla registry
         if (isCustom) {
-            FieldAccessor freezeFieldAccessor = ReflectionUtil.getField(MappedRegistry.class, boolean.class);
+            FieldAccessor freezeFieldAccessor = ReflectionUtil.getField(MappedRegistry.class, "frozen");
             freezeFieldAccessor.set(biomeRegistry, false);
 
             FieldAccessor intrusiveHoldersFieldAccessor = ReflectionUtil.getField(MappedRegistry.class, "unregisteredIntrusiveHolders");
@@ -315,7 +325,6 @@ public class BiomeWrapper_1_21_4 implements BiomeWrapper {
             Set<TagKey<Biome>> tags = new HashSet<>();
             Holder<Biome> minecraftHolder = Holder.direct(base);
             minecraftHolder.tags().forEach(tags::add);
-            System.out.println(minecraftHolder.getClass().getSimpleName());
             Holder<Biome> holder = biomeRegistry.wrapAsHolder(biome);
             bindTagsMethod.invoke(holder, tags);
         }

@@ -8,9 +8,8 @@ import io.papermc.paper.registry.RegistryKey;
 import me.cjcrafter.biomemanager.BiomeManager;
 import me.cjcrafter.biomemanager.BiomeRegistry;
 import me.cjcrafter.biomemanager.events.BiomePacketEvent;
-import me.deecaad.core.lib.scheduler.util.FieldAccessor;
-import me.deecaad.core.lib.scheduler.util.ReflectionUtil;
-import me.deecaad.core.utils.LogLevel;
+import me.cjcrafter.biomemanager.util.FieldAccessor;
+import me.cjcrafter.biomemanager.util.ReflectionUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.MappedRegistry;
@@ -32,12 +31,14 @@ import org.bukkit.craftbukkit.CraftRegistry;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.block.CraftBiome;
 
+import java.util.logging.Level;
+
 public class v1_21_4 implements BiomeCompatibility {
 
     private static final FieldAccessor chunkBiomesAccessor;
 
     static {
-        chunkBiomesAccessor = ReflectionUtil.getField(ClientboundLevelChunkPacketData.class, byte[].class);
+        chunkBiomesAccessor = ReflectionUtil.getField(ClientboundLevelChunkPacketData.class, "buffer");
     }
 
     private final Registry<org.bukkit.block.Biome> biomes;
@@ -45,15 +46,14 @@ public class v1_21_4 implements BiomeCompatibility {
     public static final MappedRegistry<net.minecraft.world.level.biome.Biome> biomeRegistry = (MappedRegistry<net.minecraft.world.level.biome.Biome>) MinecraftServer.getServer().registryAccess().lookup(Registries.BIOME).orElseThrow();
 
     public v1_21_4() {
-
         biomes = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
         for (Biome biome : biomes) {
             NamespacedKey key = biome.getKey();
             try {
                 BiomeRegistry.getInstance().add(key, new BiomeWrapper_1_21_4(CraftRegistry.bukkitToMinecraft(biome)));
             } catch (Throwable ex) {
-                BiomeManager.inst().debug.error("Failed to load biome: " + key);
-                BiomeManager.inst().debug.log(LogLevel.ERROR, ex.getMessage(), ex);
+                BiomeManager.inst().getLogger().severe("Failed to load biome: " + key);
+                BiomeManager.inst().getLogger().log(Level.SEVERE, ex.getMessage(), ex);
             }
         }
     }
@@ -72,10 +72,6 @@ public class v1_21_4 implements BiomeCompatibility {
 
     private Biome fromMinecraftBiome(net.minecraft.world.level.biome.Biome biome) {
         return CraftBiome.minecraftToBukkit(biome);
-    }
-
-    private int getBiomeId(net.minecraft.world.level.biome.Biome biome) {
-        return 1;
     }
 
     @Override

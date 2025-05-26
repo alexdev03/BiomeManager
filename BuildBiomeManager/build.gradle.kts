@@ -8,7 +8,11 @@ plugins {
     id("io.github.goooler.shadow") version "8.1.7"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
     id("xyz.jpenilla.run-paper")
+//    id("io.papermc.paperweight.userdev") version "2.0.0-beta.16"
 }
+
+//paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
+
 
 // See https://github.com/Minecrell/plugin-yml
 bukkit {
@@ -17,8 +21,8 @@ bukkit {
     apiVersion = "1.21.4"
     load = STARTUP // required to register biomes before world load
 
-    authors = listOf("CJCrafter")
-    depend = listOf("ProtocolLib", "MechanicsCore")
+    authors = listOf("AlexDev_", "CJCrafter")
+    depend = listOf("ProtocolLib")
     softDepend = listOf("TerraformGenerator")  // softdepend on plugins that register custom biomes so we can modify them
     loadBefore = listOf("WorldEdit")
 }
@@ -28,6 +32,7 @@ repositories {
 }
 
 dependencies {
+//    paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
     implementation(project(":"))
 //    implementation(project(":Biome_1_21_R1", "reobf"))
     implementation(project(":Biome_1_21_4"))
@@ -36,6 +41,12 @@ dependencies {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+tasks.jar {
+    manifest {
+        attributes["paperweight-mappings-namespace"] = "mojang"
     }
 }
 

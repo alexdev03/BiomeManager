@@ -4,9 +4,6 @@ plugins {
     id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 
-paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
-
-
 repositories {
     mavenCentral()
     maven {

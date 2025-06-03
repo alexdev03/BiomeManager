@@ -127,6 +127,13 @@ public class Command {
                                 )
                         )
                 )
+                //remove particle
+                .then(LiteralArgumentBuilder.<CommandSourceStack>literal("removeParticle")
+                        .requires(source -> source.getSender().hasPermission("biomemanager.commands.removeParticle"))
+                        .then(getBiomeArgument()
+                                .executes(ctx -> executeRemoveParticle(ctx))
+                        )
+                )
                 .then(LiteralArgumentBuilder.<CommandSourceStack>literal("cave")
                         .requires(source -> source.getSender().hasPermission("biomemanager.commands.cave"))
                         .then(getBiomeArgument()
@@ -216,6 +223,20 @@ public class Command {
         // java.awt.Color primary = new java.awt.Color(85, 255, 85);
         // java.awt.Color secondary = new java.awt.Color(255, 85, 170);
         // command.registerHelp(new HelpCommandBuilder.HelpColor(Style.style(TextColor.color(primary.getRGB())), Style.style(TextColor.color(secondary.getRGB())), "\u27A2"));
+    }
+
+    private static int executeRemoveParticle(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+        NamespacedKey biomeKey = ctx.getArgument("biome", NamespacedKey.class);
+        BiomeWrapper biome = BIOME_REGISTRY().get(biomeKey);
+        if (biome == null) {
+            sender.sendMessage(Component.text("Failed to find biome '" + biomeKey + "'").color(NamedTextColor.RED));
+            return 0;
+        }
+
+        biome.getSpecialEffects().removeAmbientParticle();
+        changes(sender);
+        return 1;
     }
 
     // --- Suggestion Providers ---

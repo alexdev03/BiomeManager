@@ -183,6 +183,10 @@ public class SpecialEffectsBuilder {
         return this;
     }
 
+    public void removeAmbientParticle() {
+        particle = new ParticleData(null, -1);
+    }
+
     public String getAmbientSound() {
         return ambientSound;
     }

@@ -33,7 +33,7 @@ import org.bukkit.craftbukkit.block.CraftBiome;
 
 import java.util.logging.Level;
 
-public class v1_21_4 implements BiomeCompatibility {
+public class v1_21_7 implements BiomeCompatibility {
 
     private static final FieldAccessor chunkBiomesAccessor;
 
@@ -45,12 +45,12 @@ public class v1_21_4 implements BiomeCompatibility {
 
     public static final MappedRegistry<net.minecraft.world.level.biome.Biome> biomeRegistry = (MappedRegistry<net.minecraft.world.level.biome.Biome>) MinecraftServer.getServer().registryAccess().lookup(Registries.BIOME).orElseThrow();
 
-    public v1_21_4() {
+    public v1_21_7() {
         biomes = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
         for (Biome biome : biomes) {
             NamespacedKey key = biome.getKey();
             try {
-                BiomeRegistry.getInstance().add(key, new BiomeWrapper_1_21_4(CraftRegistry.bukkitToMinecraft(biome)));
+                BiomeRegistry.getInstance().add(key, new BiomeWrapper_1_21_7(CraftRegistry.bukkitToMinecraft(biome)));
             } catch (Throwable ex) {
                 BiomeManager.inst().getLogger().severe("Failed to load biome: " + key);
                 BiomeManager.inst().getLogger().log(Level.SEVERE, ex.getMessage(), ex);
@@ -76,7 +76,7 @@ public class v1_21_4 implements BiomeCompatibility {
 
     @Override
     public BiomeWrapper createBiome(NamespacedKey key, BiomeWrapper base) {
-        return new BiomeWrapper_1_21_4(key, (BiomeWrapper_1_21_4) base);
+        return new BiomeWrapper_1_21_7(key, (BiomeWrapper_1_21_7) base);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class v1_21_4 implements BiomeCompatibility {
         // If there is no wrapper setup for the given key, create a new one.
         BiomeWrapper wrapper = BiomeRegistry.getInstance().get(key);
         if (wrapper == null)
-            wrapper = new BiomeWrapper_1_21_4(getMinecraftBiome(key));
+            wrapper = new BiomeWrapper_1_21_7(getMinecraftBiome(key));
 
         return wrapper;
     }

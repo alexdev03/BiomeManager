@@ -91,6 +91,7 @@ public class BiomeManager extends JavaPlugin {
             File biomesFolder = new File(getDataFolder(), "biomes");
             biomesFolder.mkdirs();
 
+            //todo allow base to be custom biome. Load first all base custom biomes, then all custom biomes that reference them
             Files.walkFileTree(biomesFolder.toPath(), new SimpleFileVisitor<>() {
                 @NotNull
                 public FileVisitResult visitFile(@NotNull Path file, BasicFileAttributes attrs) {
